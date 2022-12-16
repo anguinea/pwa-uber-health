@@ -16,13 +16,17 @@ export default function Home() {
     const [start, setStart] = useState(null);
     const [end, setEnd] = useState(null);
     const [date, setDate] = useState(null);
-
     
     useEffect(() => {
         const getInitialAppointmentsData = async () => {
-            const querySnapshot = await getDocs(query(collection(db, "appointments"), where("user_uid", "==", user.uid)));
-            setAppointments(querySnapshot);
-            console.log("appointments", appointments);
+            // console.log(user.uid);
+            const appointmentsQuerySnapshot = await getDocs(query(collection(db, "appointments")));
+            appointmentsQuerySnapshot.forEach((doc) => {
+                const id = doc.id
+                setAppointments([...appointments, {...doc.data(),id}]);
+            });
+            
+            // console.log("appointments", appointments);
         }
         getInitialAppointmentsData();
     },[forceUpdate]);
@@ -30,49 +34,44 @@ export default function Home() {
 
     useEffect(() => {
         const getInitialDoctorsData = async () => {
-            let doctors = [];
             const doctorsQuerySnapshot = await getDocs(query(collection(db, "doctors")));
             doctorsQuerySnapshot.forEach((doc) => {
                 var doctor = {value: doc.id, label: doc.data().fullname}
-                doctors.push(doctor);
+                setDoctorOptions([...doctorOptions, doctor]);
             });
-            setDoctorOptions(doctors);
-            console.log("doctorOptions", doctorOptions);
         }
         getInitialDoctorsData(); 
     },[]);
 
 
     const handleSubmit = useCallback( async (event) =>{
-        const user_uid = user.uid;
-        console.log('data to add', date, start, end, user_uid, doctorId)
+        const userUid = user.uid;
+        setEnd(start.addHour());
+        // console.log('data to add', date, start, end, userUid, doctorId);
         
-        const docRef = await addDoc(
-            collection(db, "appointments"), 
-            {date, start, end, doctorId, user_uid}
-        )
-        console.log("Appointment written with ID: ", docRef.id);
+        const docRef = await addDoc(collection(db, "appointments"), {date, start, end, doctorId, userUid});
+        // console.log("Appointment written with ID: ", docRef.id);
         setForceUpdate(true);
     }
-    , [user])
+    , [user, start, doctorId])
 
-    const handleChangeDate = useCallback((e) => setDate(e.currentTarget.value), [])
-    const handleChangeStart = useCallback((e) => setStart(e.currentTarget.value), [])
-    const handleChangeDoctor = useCallback((newValue) => setDoctorId(newValue), [])
-    const handleToggleForm = useCallback(() => setToggleForm(!toggleForm), [toggleForm])
+    const handleChangeDate = useCallback((e) => setDate(e.currentTarget.value), []);
+    const handleChangeStart = useCallback((e) => setStart(e.currentTarget.value), []);
+    const handleChangeDoctor = useCallback((newValue) => setDoctorId(newValue), []);
+    const handleToggleForm = useCallback(() => setToggleForm(!toggleForm), [toggleForm]);
     
     return (
         <div>
             {/* Top bar */}
             {/* Liste des rendez vous avec filtre "à venir" ou tous.  */}
             <h1>Mes Rendez-vous</h1>
-            { appointments.map((appointment) => {
+            { appointments?.map((appointment) => {
                     return (
-                        <div className="appointment" key={appointment.uid}>
+                        <div className="appointment" key={appointment.id}>
                             <p className="date">{appointment.date}</p>
                             <p className="start">{appointment.start}</p>
                             <p className="end">{appointment.end}</p>
-                            <p className="doctor">{appointment.doctor.fullname}</p>
+                            {/* <p className="doctor">{appointment.doctor.fullname}</p> */}
                         </div>
                     )
                 })

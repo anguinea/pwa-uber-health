@@ -27,7 +27,7 @@ export default function Register(){
         await setDoc(
             doc(db, "customers", userCredential.user.uid), {firstname, lastname, birthdate, postalCode, city}
         )
-        setUser({firstname, lastname, birthdate, postalCode, city, uid: userCredential.user.uid, })
+        setUser({firstname, lastname, birthdate, postalCode, city, uid: userCredential.user.uid})
         navigate("/home")
       })
       .catch((error) => {

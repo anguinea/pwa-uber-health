@@ -18,7 +18,7 @@ export default function Login() {
 
             const docRef = doc(db, "customers", userCredential.user.uid);
             const customer = await(await getDoc(docRef)).data();
-            customer != null ? setUser(customer) : setError('User not found');
+            customer != null ? setUser({...customer,uid:userCredential.user.uid}) : setError('User not found');
             navigate("/home");
         })
         .catch((error) => {
